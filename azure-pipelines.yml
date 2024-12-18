@@ -1,0 +1,30 @@
+trigger:
+  - main
+
+pool:
+  vmImage: "ubuntu-latest"
+
+variables:
+  resourceGroup: "1-80cb0679-playground-sandbox "
+  location: "eastus"
+  keyVaultName: "myKeyVault"
+  bicepFile: "main.bicep"
+
+stages:
+  - stage: DeployKeyVault
+    displayName: Deploy Azure Key Vault
+    jobs:
+      - job: Deploy
+        displayName: Deploy Key Vault
+        steps:
+          - task: AzureCLI@2
+            displayName: Deploy Bicep Template
+            inputs:
+              azureSubscription: "Azkeyvaultdeployment1"
+              scriptType: "bash"
+              scriptLocation: "inlineScript"
+              inlineScript: |
+                az deployment group create \
+                  --resource-group $(resourceGroup) \
+                  --template-file $(bicepFile) \
+                  --parameters location=$(location) keyVaultName=$(keyVaultName)
