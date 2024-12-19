@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "keyVaults": {
+      "value": [
+        {
+          "name": "SaivaultUnique12345",
+          "accessPolicies": [],
+          "tags": {
+            "environment": "test"
+          }
+        },
+        {
+          "name": "TejvaultUnique12345",
+          "accessPolicies": [],
+          "tags": {
+            "environment": "staging"
+          }
+        }
+      ]
+    },
+    "location": {
+      "value": "WestUS"
+    }
+  }
+}

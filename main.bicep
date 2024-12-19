@@ -1,30 +1,20 @@
-@description('Name of the Azure Key Vault')
-param keyVaultName string
+@description('Array of Key Vault configurations')
+param keyVaults array
 
-@description('Location of the Azure Key Vault')
-param location string = resourceGroup().location
+@description('Deployment location')
+param location string
 
-@description('SKU for the Azure Key Vault (standard or premium)')
-param skuName string = 'standard'
-
-@description('Enable purge protection for the Key Vault')
-param enablePurgeProtection bool = true
-
-@description('Tenant ID of the Azure Active Directory')
-param tenantId string = subscription().tenantId
-
-resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' = {
-  name: keyVaultName
-  location: location
-  properties: {
-    sku: {
-      family: 'A'
-      name: skuName
-    }
-    tenantId: tenantId
-    enableSoftDelete: true
-    enablePurgeProtection: enablePurgeProtection
+module keyVaultModules 'keyVault.bicep' = [for kv in keyVaults: {
+  name: '${kv.name}-module'
+  params: {
+    name: kv.name
+    location: location
+    accessPolicies: kv.accessPolicies
+    tags: kv.tags
   }
-}
+}]
 
-output keyVaultUri string = keyVault.properties.vaultUri
+output deployedKeyVaults array = [for (kv, index) in keyVaults: {
+  name: kv.name
+  id: keyVaultModules[index].outputs.keyVaultId
+}]

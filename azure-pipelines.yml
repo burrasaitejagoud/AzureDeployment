@@ -1,30 +1,35 @@
 trigger:
-  - main
+  branches:
+    include:
+      - main # Adjust this to your desired branch
 
 pool:
-  vmImage: "ubuntu-latest"
+  vmImage: "ubuntu-latest" # Using a Linux-based agent for the build. Change to 'windows-latest' if necessary
 
 variables:
-  resourceGroup: "1-80cb0679-playground-sandbox "
-  location: "eastus"
-  keyVaultName: "myKeyVault"
-  bicepFile: "main.bicep"
+  azureSubscription: "MyAzureConnection" # The name of your Azure service connection in Azure DevOps
+  resourceGroupName: "azresourcegroup" # The resource group for deploying the Key Vaults
+  location: "EastUS" # Azure region for deployment
 
-stages:
-  - stage: DeployKeyVault
-    displayName: Deploy Azure Key Vault
-    jobs:
-      - job: Deploy
-        displayName: Deploy Key Vault
-        steps:
-          - task: AzureCLI@2
-            displayName: Deploy Bicep Template
-            inputs:
-              azureSubscription: "Azkeyvaultdeployment1"
-              scriptType: "bash"
-              scriptLocation: "inlineScript"
-              inlineScript: |
-                az deployment group create \
-                  --resource-group $(resourceGroup) \
-                  --template-file $(bicepFile) \
-                  --parameters location=$(location) keyVaultName=$(keyVaultName)
+steps:
+  # Step 1: Deploy Key Vault using Bicep templates
+  - task: AzureCLI@2
+    displayName: "Deploy Key Vaults with Bicep"
+    inputs:
+      azureSubscription: $(azureSubscription) # Use the service connection to authenticate
+      scriptType: "bash"
+      scriptLocation: "inlineScript"
+      inlineScript: |
+        # Ensure Azure CLI is logged in
+        az account set --subscription $(azureSubscription)
+
+        # Create Resource Group if it doesn't exist
+        az group create --name $(resourceGroupName) --location $(location)
+
+        # Deploy Bicep template to create Key Vaults
+        az deployment group create \
+          --resource-group $(resourceGroupName) \
+          --template-file main.bicep \
+          --parameters @params.json
+
+        echo "Key Vaults deployment completed successfully."
